@@ -21,7 +21,10 @@ jobs:
         run: pip install requests beautifulsoup4
 
       - name: Run script
-        env:
-          EMAIL_ADDRESS: ${{ secrets.EMAIL_ADDRESS }}
-          EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
         run: python main.py
+
+      - name: Upload hot topics HTML
+        uses: actions/upload-artifact@v3
+        with:
+          name: daily-hot-topics
+          path: daily_hot_topics_*.html
