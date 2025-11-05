@@ -6,10 +6,10 @@ from email.header import Header
 from datetime import datetime
 
 # ========== 邮箱设置 ==========
-SMTP_SERVER = "smtp.yeah.net"  # 你的邮箱SMTP服务器
+SMTP_SERVER = "smtp.yeah.net"
 SMTP_PORT = 465
-EMAIL_ADDRESS = "chris_zhangjixin@yeah.net"  # 你的邮箱
-EMAIL_PASSWORD = "你的授权码"  # ⚠️ 稍后用GitHub Secrets替代
+EMAIL_ADDRESS = os.environ.get("EMAIL_ADDRESS")
+EMAIL_PASSWORD = os.environ.get("EMAIL_PASSWORD")
 
 # ========== 热榜来源 ==========
 SOURCES = {
