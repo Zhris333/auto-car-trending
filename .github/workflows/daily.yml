@@ -3,7 +3,7 @@ name: Daily Auto Run
 on:
   schedule:
     - cron: "0 1 * * *"  # 每天北京时间早上9点运行
-  workflow_dispatch:  # 手动触发
+  workflow_dispatch:
 
 jobs:
   run-script:
@@ -23,8 +23,11 @@ jobs:
       - name: Run script
         run: python main.py
 
+      - name: List files
+        run: ls -al
+
       - name: Upload hot topics HTML
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: daily-hot-topics
           path: daily_hot_topics_*.html
