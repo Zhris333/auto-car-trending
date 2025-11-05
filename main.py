@@ -1,16 +1,7 @@
-import os
 import requests
 from bs4 import BeautifulSoup
-import smtplib
-from email.mime.text import MIMEText
-from email.header import Header
 from datetime import datetime
-
-# ========== 邮箱设置 ==========
-SMTP_SERVER = "smtp.yeah.net"
-SMTP_PORT = 465
-EMAIL_ADDRESS = os.environ.get("EMAIL_ADDRESS")
-EMAIL_PASSWORD = os.environ.get("EMAIL_PASSWORD")
+import os
 
 # ========== 热榜来源 ==========
 SOURCES = {
@@ -21,6 +12,7 @@ SOURCES = {
     "懂车帝": "https://www.dongchedi.com/news"
 }
 
+# 关键词筛选
 KEYWORDS = ["汽车", "理想", "比亚迪", "特斯拉", "奔驰", "宝马", "大众", "蔚来", "极氪", "智界", "问界"]
 
 # ========== 爬取函数 ==========
@@ -33,32 +25,41 @@ def fetch_hot_topics():
             resp.encoding = resp.apparent_encoding
             soup = BeautifulSoup(resp.text, "html.parser")
             text = soup.get_text()
+            found = False
             for kw in KEYWORDS:
                 if kw in text:
                     results.append(f"{name} 有关于『{kw}』的热议话题")
+                    found = True
                     break
+            if not found:
+                results.append(f"{name} 暂无汽车相关热榜")
         except Exception as e:
             results.append(f"{name} 抓取失败: {e}")
     return results
 
-# ========== 邮件函数 ==========
-def send_email(content):
-    message = MIMEText(content, "plain", "utf-8")
-    message["From"] = Header("汽车热榜机器人", "utf-8")
-    message["To"] = Header("Zhris", "utf-8")
-    message["Subject"] = Header(f"今日汽车热议榜 - {datetime.now().strftime('%Y-%m-%d')}", "utf-8")
-
-    try:
-        smtp = smtplib.SMTP_SSL(SMTP_SERVER, SMTP_PORT)
-        smtp.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
-        smtp.sendmail(EMAIL_ADDRESS, EMAIL_ADDRESS, message.as_string())
-        smtp.quit()
-        print("✅ 邮件已发送成功！")
-    except Exception as e:
-        print("❌ 邮件发送失败:", e)
+# ========== 保存文件函数 ==========
+def save_file(content):
+    date_str = datetime.now().strftime('%Y%m%d')
+    filename = f"daily_hot_topics_{date_str}.html"
+    html_content = f"""
+    <html>
+    <head><meta charset="utf-8"><title>汽车热议榜-{date_str}</title></head>
+    <body>
+        <h2>汽车热议榜 - {datetime.now().strftime('%Y-%m-%d')}</h2>
+        <ul>
+    """
+    for item in content:
+        html_content += f"<li>{item}</li>\n"
+    html_content += """
+        </ul>
+    </body>
+    </html>
+    """
+    with open(filename, "w", encoding="utf-8") as f:
+        f.write(html_content)
+    print(f"✅ 文件已生成: {filename}")
 
 # ========== 主程序 ==========
 if __name__ == "__main__":
     topics = fetch_hot_topics()
-    content = "\n".join(topics) if topics else "今日暂无汽车相关热榜内容。"
-    send_email(content)
+    save_file(topics)
